@@ -167,13 +167,17 @@ void VelodyneLaserScan::recvCallback(const sensor_msgs::PointCloud2ConstPtr& msg
   // Construct LaserScan message
   if ((offset_x >= 0) && (offset_y >= 0) && (offset_r >= 0))
   {
+    const float SCAN_WIDTH = M_PI; // testing
+    const float SCAN_DIR = 0.0; // testing
+      
     const float RESOLUTION = std::abs(cfg_.resolution);
-    const size_t SIZE = 2.0 * M_PI / RESOLUTION;
+    const size_t SIZE = SCAN_WIDTH / RESOLUTION; // testing
+      
     sensor_msgs::LaserScanPtr scan(new sensor_msgs::LaserScan());
     scan->header = msg->header;
     scan->angle_increment = RESOLUTION;
-    scan->angle_min = -M_PI;
-    scan->angle_max = M_PI;
+    scan->angle_min = SCAN_DIR - SCAN_WIDTH / 2.0;  //-M_PI;
+    scan->angle_max = SCAN_DIR - SCAN_WIDTH / 2.0;  //M_PI;
     scan->range_min = 0.0;
     scan->range_max = 200.0;
     scan->time_increment = 0.0;
@@ -199,7 +203,9 @@ void VelodyneLaserScan::recvCallback(const sensor_msgs::PointCloud2ConstPtr& msg
           const float x = it[X];  // x
           const float y = it[Y];  // y
           const float i = it[I];  // intensity
-          const int bin = (atan2f(y, x) + static_cast<float>(M_PI)) / RESOLUTION;
+            
+          // center and limit the bins based on the scan width and direction
+          const int bin = (atan2f(y, x) + static_cast<float>(SCAN_WIDTH / 2.0) - SCAN_DIR) / RESOLUTION;  // + static_cast<float>(M_PI)) / RESOLUTION;
 
           if ((bin >= 0) && (bin < static_cast<int>(SIZE)))
           {
@@ -229,8 +235,11 @@ void VelodyneLaserScan::recvCallback(const sensor_msgs::PointCloud2ConstPtr& msg
             const float x = *iter_x;  // x
             const float y = *iter_y;  // y
             const float i = *iter_i;  // intensity
-            const int bin = (atan2f(y, x) + static_cast<float>(M_PI)) / RESOLUTION;
-
+              
+//            const int bin = (atan2f(y, x) + static_cast<float>(M_PI)) / RESOLUTION;
+            // center and limit the bins based on the scan width and direction
+            const int bin = (atan2f(y, x) + static_cast<float>(SCAN_WIDTH / 2.0) - SCAN_DIR) / RESOLUTION;  
+              
             if ((bin >= 0) && (bin < static_cast<int>(SIZE)))
             {
               scan->ranges[bin] = sqrtf(x * x + y * y);
@@ -253,8 +262,11 @@ void VelodyneLaserScan::recvCallback(const sensor_msgs::PointCloud2ConstPtr& msg
           {
             const float x = *iter_x;  // x
             const float y = *iter_y;  // y
-            const int bin = (atan2f(y, x) + static_cast<float>(M_PI)) / RESOLUTION;
-
+              
+            //const int bin = (atan2f(y, x) + static_cast<float>(M_PI)) / RESOLUTION;
+            // center and limit the bins based on the scan width and direction
+            const int bin = (atan2f(y, x) + static_cast<float>(SCAN_WIDTH / 2.0) - SCAN_DIR) / RESOLUTION;  // + static_cast<float>(M_PI)) / RESOLUTION;
+              
             if ((bin >= 0) && (bin < static_cast<int>(SIZE)))
             {
               scan->ranges[bin] = sqrtf(x * x + y * y);
